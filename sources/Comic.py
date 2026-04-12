@@ -7,7 +7,7 @@ from selectolax.parser import HTMLParser
 from config import get_settings
 from data.data import get_data_as_dict
 from utils.compress import equal_widths, transform_image
-from utils.scraper import _content_image, get_extension, get_html_parsed
+from utils.scraper import _content_image, get_elements_html, get_extension, get_html_parsed
 from utils.utils import images_process, json_dump, json_load, sanitizing_title
 
 
@@ -19,6 +19,7 @@ class Comic:
     z_fill: int = 4
     cookies: dict[str, str] = get_settings().model_dump(exclude={"base_path"})
     dates: dict[str, str] = json_load(Path(__file__).parent.parent / "data" / "dates.json")
+    CORRECT_EP = {"Tower of God": {221: 1}}
 
     def __init__(self, title: str) -> None:
         self.title = title
@@ -58,11 +59,17 @@ class Comic:
     def _get_cookies(self) -> str:
         return self.cookies.get(self.__class__.__name__.lower(), "")
 
+    def _adjust_ep(self, episode: int) -> int:
+        data = self.CORRECT_EP.get(self.title, {})
+        _, v = min(((e, v) for e, v in data.items() if episode >= e), key=lambda x: x[0], default=(-1, 0))
+        return v
+
     def url_comic(self) -> str:
         return self.PATTERNS["series"].format(comic_id=self.id)
 
     def url_episode(self, episode: int) -> str:
-        return self.PATTERNS["episode"].format(comic_id=self.id, episode=episode)
+        adjustment = self._adjust_ep(episode)
+        return self.PATTERNS["episode"].format(comic_id=self.id, episode=episode + adjustment)
 
     def get_comic_html(self) -> HTMLParser:
         if self._comic_html is None:
@@ -70,13 +77,15 @@ class Comic:
         return self._comic_html
 
     def missing_episodes(self) -> set[int]:
-        raise NotImplementedError("Method missing_episodes must be implemented in subclass")
+        last_episode = get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True)
+        last_episode = int(last_episode) - self._adjust_ep(int(last_episode))
+        return set(range(1, last_episode + 1)) - self.downloaded()
 
     def get_url_images_episode(self, episode: int) -> list[str]:
         raise NotImplementedError("Method get_url_images_episode must be implemented in subclass")
 
-    def _get_image_content(self, url: str) -> bytes:
-        content = _content_image(url, self.REFERER, self._get_cookies())
+    def _get_image_content(self, url: str) -> tuple[bytes, str]:
+        content = _content_image(url.split('?')[0], self.REFERER, self._get_cookies())
         if self.COMPRESSION:
             content = transform_image(content)
         return content, ".webp" if self.COMPRESSION else get_extension(url)
@@ -86,7 +95,6 @@ class Comic:
         episode: int | float,
         workers: int = 15,
     ) -> None:
-
         self._print(("status", f"Searching episode {episode}..."))
         urls = self.get_url_images_episode(episode)
         self._print(("status", f"Downloading episode {episode}..."))
