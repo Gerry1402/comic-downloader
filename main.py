@@ -1,3 +1,5 @@
+from itertools import zip_longest
+
 from sources import load_all_modules
 from sources.Comic import Comic
 
@@ -6,16 +8,13 @@ load_all_modules()
 
 def get_available_comics() -> list[Comic]:
     data = Comic.data
-    sources = Comic.sources
-    return [Comic.create(title) for title in data if data[title][1] in sources]
-
-
-def random_check_comics() -> None:
-    comics = get_available_comics()
-    for comic in comics:
-        if comic.completed or comic.__class__.__name__.lower()!= "asura":
+    comics = {}
+    for title in data:
+        source = data[title][1]
+        if source not in Comic.sources:
             continue
-        comic.get_metadata()
+        comics.setdefault(source, []).append(Comic.create(title))
+    return [c for g in zip_longest(*comics.values(), fillvalue=None) for c in g if c]
 
 
 def main() -> None:
