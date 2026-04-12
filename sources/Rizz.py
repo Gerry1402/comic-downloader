@@ -14,8 +14,7 @@ class Rizz(Comic):
     DECREMENT: set[str] = {}
 
     def missing_episodes(self) -> int:
-        last_episode = get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True)
-        last_episode = int(last_episode) - int(self.title in self.DECREMENT)
+        last_episode = get_elements_html(self._get_comic_html(), *self.LAST_EPISODE_CSS, first=True)
         return set(range(1, last_episode + 1)) - self.downloaded()
 
     def get_url_images_episode(self, episode: int) -> list[str]:

@@ -31,18 +31,19 @@ class Asura(Comic):
     }
     IMAGES_CSS: tuple[str, str] = (".select-none img", "src")
     REFERER: str = "https://asurascans.com/"
-    METADATA: tuple[str, str, tuple[str, str]] = ("astro-island", "props", ("prefix", "r21"))
+    METADATA: tuple[str, str, tuple[str, str]] = ("astro-island", "props", ("prefix", "r22"))
     COMPRESSION: bool = False
+    DISCONTINUATIONS: dict[str, dict[int, int]] = {}
 
-    def get_metadata(self) -> dict:
-        html = self.get_comic_html()
+    def _get_metadata(self) -> dict:
+        html = self._get_comic_html()
         metadata = get_elements_html(html, self.METADATA[0], self.METADATA[1], filter=self.METADATA[2])
         return clean_metadata(metadata)
 
     def missing_episodes(self) -> set[int]:
-        metadata = self.get_metadata()
+        metadata = self._get_metadata()
         avalaible = {int(chapter["number"]) for chapter in metadata.get("chapters", []) if not chapter.get("is_locked")}
-        return avalaible - self.downloaded()
+        return avalaible - self._downloaded()
 
     def get_url_images_episode(self, episode: int) -> list[str]:
         with BrowserManager() as browser:

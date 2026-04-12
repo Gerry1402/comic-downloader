@@ -55,7 +55,7 @@ class Comic:
     def downloaded(self) -> set[int]:
         return {int(file.stem) for file in self.path().rglob("*.cbz")} or {0}
 
-    def get_cookies(self) -> str:
+    def _get_cookies(self) -> str:
         return self.cookies.get(self.__class__.__name__.lower(), "")
 
     def url_comic(self) -> str:
@@ -75,8 +75,8 @@ class Comic:
     def get_url_images_episode(self, episode: int) -> list[str]:
         raise NotImplementedError("Method get_url_images_episode must be implemented in subclass")
 
-    def get_image_content(self, url: str) -> bytes:
-        content = _content_image(url, self.REFERER, self.get_cookies())
+    def _get_image_content(self, url: str) -> bytes:
+        content = _content_image(url, self.REFERER, self._get_cookies())
         if self.COMPRESSION:
             content = transform_image(content)
         return content, ".webp" if self.COMPRESSION else get_extension(url)
@@ -98,7 +98,7 @@ class Comic:
                 with cbz_f.open(f"{i:03}{ext}", "w") as f:
                     f.write(content)
 
-            for i, (content, ext) in images_process(self.get_image_content, urls, self.title, episode, workers):
+            for i, (content, ext) in images_process(self._get_image_content, urls, self.title, episode, workers):
                 if content is None:
                     self.errors.add(episode)
                     return episode
