@@ -108,7 +108,7 @@ class Comic:
                 with cbz_f.open(f"{i:03}{ext}", "w") as f:
                     f.write(content)
 
-            for i, (content, ext) in images_process(self._get_image_content, urls, self.title, episode, workers):
+            for i, (content, ext) in images_process(self._get_image_content, urls, workers):
                 if content is None:
                     return True
                 if i in (1, 2):
