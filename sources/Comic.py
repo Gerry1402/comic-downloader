@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from time import sleep
 from zipfile import ZIP_STORED, ZipFile
 
 from selectolax.parser import HTMLParser
@@ -8,7 +9,7 @@ from config import get_settings
 from data.data import get_data_as_dict
 from utils.compress import equal_widths, transform_image
 from utils.scraper import _content_image, get_elements_html, get_extension, get_html_parsed
-from utils.utils import images_process, json_dump, json_load, sanitizing_title
+from utils.utils import add_log, images_process, json_dump, json_load, sanitizing_title
 
 
 class Comic:
@@ -20,6 +21,7 @@ class Comic:
     cookies: dict[str, str] = get_settings().model_dump(exclude={"base_path"})
     dates: dict[str, str] = json_load(Path(__file__).parent.parent / "data" / "dates.json")
     CORRECT_EP = {"Tower of God": {221: 1}}
+    RETRIES = 3
 
     def __init__(self, title: str) -> None:
         self.title = title
@@ -85,7 +87,7 @@ class Comic:
         raise NotImplementedError("Method get_url_images_episode must be implemented in subclass")
 
     def _get_image_content(self, url: str) -> tuple[bytes, str]:
-        content = _content_image(url.split('?')[0], self.REFERER, self._get_cookies())
+        content = _content_image(url.split("?", maxsplit=1)[0], self.REFERER, self._get_cookies())
         if self.COMPRESSION:
             content = transform_image(content)
         return content, ".webp" if self.COMPRESSION else get_extension(url)
@@ -94,7 +96,7 @@ class Comic:
         self,
         episode: int | float,
         workers: int = 15,
-    ) -> None:
+    ) -> bool:
         self._print(("status", f"Searching episode {episode}..."))
         urls = self.get_url_images_episode(episode)
         self._print(("status", f"Downloading episode {episode}..."))
@@ -108,8 +110,7 @@ class Comic:
 
             for i, (content, ext) in images_process(self._get_image_content, urls, self.title, episode, workers):
                 if content is None:
-                    self.errors.add(episode)
-                    return episode
+                    return True
                 if i in (1, 2):
                     compare_content[i - 1] = content
                     if i == 1:
@@ -120,14 +121,22 @@ class Comic:
 
         self.dates[self.name] = datetime.now().isoformat()
         json_dump(self.dates, Path(__file__).parent.parent / "data" / "dates.json")
-        return episode
+        return False
 
     def download_all(self, workers: int = 15) -> None:
         self._print(("status", "Searching missing episodes..."))
         for episode in self.missing_episodes():
-            self.download_episode(episode, workers=workers)
-            if episode in self.errors:
-                self.path(episode).with_suffix(".cbz").unlink(missing_ok=True)
+            for i in range(self.RETRIES):
+                if self.download_episode(episode, workers=workers):
+                    self.path(episode).with_suffix(".cbz").unlink(missing_ok=True)
+                    if i == self.RETRIES - 1:
+                        add_log("error", self.title, episode)
+                        self.errors.add(episode)
+                        break
+                    sleep(8)
+                else:
+                    add_log("done", self.title, episode)
+                    break
         self._print(("status", "Downloaded"), ("errors", len(self.errors)), end="\n")
 
     def _print(self, *args: tuple[str, str], end: str = "") -> None:

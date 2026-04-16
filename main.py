@@ -10,8 +10,7 @@ def get_available_comics() -> list[Comic]:
     data = Comic.data
     comics = {}
     for title in data:
-        source = data[title][1]
-        if source not in Comic.sources:
+        if (source := data[title][1]) not in Comic.sources:
             continue
         comics.setdefault(source, []).append(Comic.create(title))
     return [c for g in zip_longest(*comics.values(), fillvalue=None) for c in g if c]

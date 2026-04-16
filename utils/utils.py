@@ -79,10 +79,6 @@ def images_process(
         for future in as_completed(futures):
             try:
                 result = future.result()
-                name = "done"
                 yield (futures[future][0], result)
             except Exception:
-                name = "error"
                 yield (futures[future][0], (None, None))
-            finally:
-                add_log(name, title, episode)
