@@ -69,8 +69,6 @@ def episode_process(function: Callable, episodes: list[int]) -> Generator[Any, N
 def images_process(
     function: Callable,
     images_urls: list[str],
-    title: str,
-    episode: int,
     workers: int,
 ) -> Generator[Any, None, None]:
 
