@@ -110,7 +110,7 @@ class Comic:
 
             for i, (content, ext) in images_process(self._get_image_content, urls, workers):
                 if content is None:
-                    return True
+                    return False
                 if i in (1, 2):
                     compare_content[i - 1] = content
                     if i == 1:
@@ -121,22 +121,20 @@ class Comic:
 
         self.dates[self.name] = datetime.now().isoformat()
         json_dump(self.dates, Path(__file__).parent.parent / "data" / "dates.json")
-        return False
+        return True
 
     def download_all(self, workers: int = 15) -> None:
         self._print(("status", "Searching missing episodes..."))
+        episode_status = ("error", "done")
         for episode in self.missing_episodes():
-            for i in range(self.RETRIES):
-                if self.download_episode(episode, workers=workers):
-                    self.path(episode).with_suffix(".cbz").unlink(missing_ok=True)
-                    if i == self.RETRIES - 1:
-                        add_log("error", self.title, episode)
-                        self.errors.add(episode)
-                        break
-                    sleep(8)
-                else:
-                    add_log("done", self.title, episode)
+            for _ in range(self.RETRIES):
+                if is_downloaded := self.download_episode(episode, workers):
                     break
+                self.path(episode).with_suffix(".cbz").unlink(missing_ok=True)
+                sleep(8)
+            if not is_downloaded:
+                self.errors.add(episode)
+            add_log(episode_status[int(is_downloaded)], self.title, episode)
         self._print(("status", "Downloaded"), ("errors", len(self.errors)), end="\n")
 
     def _print(self, *args: tuple[str, str], end: str = "") -> None:
