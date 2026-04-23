@@ -15,7 +15,7 @@ def get_html_parsed(url: str, cookies: str = "") -> HTMLParser:
     return HTMLParser(response.text)
 
 
-def _content_image(url: str, referer: str, cookies: str = "") -> None:
+def _content_image(url: str, referer: str, cookies: str = "") -> bytes:
     response = requests.get(
         url,
         cookies=cookies if cookies else None,
