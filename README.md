@@ -32,12 +32,13 @@ Current source classes in this repo:
 
 - Python 3.11+ recommended
 - Chromium browser for Playwright (used by Asura pages)
+- `uv` package manager
 
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
-playwright install chromium
+uv sync
+uv run playwright install chromium
 ```
 
 ## Configuration
@@ -73,20 +74,10 @@ If you do not need cookies for your sources, this file can stay empty.
 ## Run the downloader
 
 ```bash
-python main.py
+uv run main.py
 ```
 
 By default, it loops over all available comics and downloads missing episodes.
-
-## Download only one comic (example)
-
-Use a small one-liner from terminal:
-
-```bash
-python -c "from sources import load_all_modules; from sources.Comic import Comic; load_all_modules(); Comic.create('Jungle Juice').download_all()"
-```
-
-You can replace `Jungle Juice` with any title present in your data file.
 
 ## Where files are saved
 
@@ -118,13 +109,13 @@ Edit `data/data.xlsx` and keep the same structure already used by the script:
 After editing, run again:
 
 ```bash
-python main.py
+uv run main.py
 ```
 
 ## Troubleshooting
 
-- `ModuleNotFoundError`: install dependencies from `requirements.txt`.
-- Playwright/browser errors: run `playwright install chromium`.
+- `ModuleNotFoundError`: run `uv sync` to install dependencies.
+- Playwright/browser errors: run `uv run playwright install chromium`.
 - `Source for "..." not found`: source value in your data does not match a loaded source class.
 - `Failed to fetch data` or image errors: site layout changed, URL blocked, or cookies needed.
 
