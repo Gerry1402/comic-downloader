@@ -1,6 +1,8 @@
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Any, Callable, Collection, Generator
+from typing import Any, Callable, Collection, Generator, TypeVar
+
+T = TypeVar("T")
 
 
 def sanitizing_title(title: str) -> str:
@@ -21,7 +23,10 @@ def sanitizing_title(title: str) -> str:
     return name
 
 
-def reorder_by_frequency(data: list[dict], key: str) -> list[dict]:
+def reorder_by_frequency(
+    data: list[dict],
+    key: str,
+) -> list[dict]:
     n_data = len(data)
     counts = Counter(item[key] for item in data)
     next_time = dict.fromkeys(counts, 0.0)
@@ -38,6 +43,20 @@ def reorder_by_frequency(data: list[dict], key: str) -> list[dict]:
         new_data.append(main_key[key_value].pop(0))
         next_time[key_value] += step[key_value]
     return new_data
+
+def reorder(data: list[dict], *keys: str) -> list[dict]:
+    if not keys or not data:
+        return list(data)
+
+    groups: dict = {}
+    for item in data:
+        groups.setdefault(item[keys[0]], []).append(item)
+
+    for k, values in groups.items():
+        groups[k] = reorder(values, *keys[1:])
+
+    flat = [item for group in groups.values() for item in group]
+    return reorder_by_frequency(flat, keys[0])
 
 
 def threadpool(

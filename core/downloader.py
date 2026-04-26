@@ -20,6 +20,7 @@ class Downloader:
         self.logger: Logger = Logger("download", comic)
 
     def get_missing_episodes(self) -> set[int]:
+        self._print(status="Searching missing episodes...")
         avalaible = self.scraper.get_avalaible_episodes()
         downloaded = self.file_manager.get_downloaded_episodes()
         self.logger.add("missing_episodes", len(avalaible) < len(downloaded), comic_url=self.scraper.url_comic())
@@ -61,7 +62,6 @@ class Downloader:
         self.logger.add("download_episode", has_errors, episode=episode, urls=len(urls), referer=self.scraper.REFERER)
 
     def download_all(self, workers: int = 15) -> None:
-        self._print(status="Searching missing episodes...")
         for episode in self.get_missing_episodes():
             self.download_episode(episode, workers)
         self._print(status="Downloaded", end="\n")
