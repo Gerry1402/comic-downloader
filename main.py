@@ -1,38 +1,23 @@
-from itertools import zip_longest
-
+from core.downloader import Downloader
+from core.library import Library
 from sources import load_all_modules
-from sources.Comic import Comic
 
 load_all_modules()
 
 
-def get_available_comics() -> list[Comic]:
-    data = Comic.data
-    comics = {}
-    for title in data:
-        if (source := data[title][1]) not in Comic.sources:
-            continue
-        comics.setdefault(source, []).append(Comic.create(title))
-    return [c for g in zip_longest(*comics.values(), fillvalue=None) for c in g if c]
+def get_comics() -> None:
+    completed = False
+    source = ("asura", "webtoon")
+    library = Library().filter_by(completed=completed, source=source).reorder_by_source()
+    for comic, scraper in library:
+        downloader = Downloader(comic, scraper)
+        if downloader.get_missing_episodes():
+            downloader.download_all()
 
 
 def main() -> None:
-    comics = get_available_comics()
-    for comic in comics:
-        if comic.completed:
-            continue
-        comic.download_all()
+    get_comics()
 
 
 if __name__ == "__main__":
-    # comic = Comic.create("Jungle Juice")
-    # comic = Comic.create("Tower of God")
-    # comic = Comic.create("Overgeared")
-    # print(comic.url_comic(), comic.get_metadata())
-    # comic = Comic.create("Logging 10,000 Years into the Future")
-    # comic.download_all()
-    # comic.download_episode(197)
-    # comic.download_all()
-    # for comic in get_available_comics():
-    #     print(comic.path())
     main()

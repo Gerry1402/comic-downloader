@@ -1,22 +1,6 @@
-import contextlib
-import json
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
-from typing import Any, Callable, Generator
-
-
-def json_dump(data: dict | list, path: Path | str) -> None:
-    with Path(path).with_suffix(".json").open("w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=4, sort_keys=True)
-
-
-def json_load(path: Path | str) -> dict | list:
-    try:
-        with Path(path).with_suffix(".json").open("r", encoding="utf-8") as f:
-            return json.load(f)
-    except FileNotFoundError:
-        json_dump({}, Path(path).with_suffix(".json"))
-        return {}
+from typing import Any, Callable, Collection, Generator
 
 
 def sanitizing_title(title: str) -> str:
@@ -37,46 +21,41 @@ def sanitizing_title(title: str) -> str:
     return name
 
 
-def add_log(name: str, title: str, episode: int) -> None:
-    data = json_load(name)
-    if episode not in data.get(title, []):
-        episodes = data.setdefault(title, [])
-        episodes.append(episode)
-        data[title] = sorted(set(episodes))
-        json_dump(data, Path(name))
+def reorder_by_frequency(data: list[dict], key: str) -> list[dict]:
+    n_data = len(data)
+    counts = Counter(item[key] for item in data)
+    next_time = dict.fromkeys(counts, 0.0)
+    step = {key: n_data / count for key, count in counts.items()}
+
+    main_key = {}
+    for item in data:
+        main_key.setdefault(item[key], []).append(item)
+
+    new_data = []
+    for _ in range(n_data):
+        avalaible_key_values = {key for key, values in main_key.items() if values}
+        key_value = min(avalaible_key_values, key=lambda c: (next_time[c], -len(main_key[c])))
+        new_data.append(main_key[key_value].pop(0))
+        next_time[key_value] += step[key_value]
+    return new_data
 
 
-def add_file(name: str | Path, content: str) -> None:
-    path = Path(name)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    index = 0
-    while path.exists():
-        index += 1
-        path = path.with_stem(path.stem.split("_")[0] + f"_{index:02}")
-    with path.open("w", encoding="utf-8") as f:
-        f.write(content + "\n")
-
-
-def episode_process(function: Callable, episodes: list[int]) -> Generator[Any, None, None]:
-
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = {executor.submit(function, episode): episode for episode in episodes}
-        for future in as_completed(futures):
-            with contextlib.suppress(Exception):
-                yield futures[future], future.result()
-
-
-def images_process(
+def threadpool(
     function: Callable,
-    images_urls: list[str],
+    *args: Collection,
     workers: int,
 ) -> Generator[Any, None, None]:
 
+    if len({len(arg) for arg in args}) != 1:
+        raise ValueError("All arguments must have the same length.")
+
+    parameters = zip(*args)
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(function, url): (i, url) for i, url in enumerate(images_urls, start=1)}
+        futures = {executor.submit(function, *params): i for i, params in enumerate(parameters, start=1)}
         for future in as_completed(futures):
             try:
                 result = future.result()
-                yield (futures[future][0], result)
             except Exception:
-                yield (futures[future][0], (None, None))
+                result = None
+            finally:
+                yield (futures[future], result)

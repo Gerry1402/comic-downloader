@@ -1,7 +1,7 @@
 import json
 from typing import Generator
 
-from sources.Comic import Comic
+from core.scraper import Scraper
 from utils.scraper import get_elements_html, get_html_parsed
 
 
@@ -23,7 +23,7 @@ def clean(string: str, key: str) -> Generator[dict, None, None]:
         yield clean_metadata(item)
 
 
-class Asura(Comic):
+class Asura(Scraper):
     PATTERNS: dict[str, str] = {
         "series": "https://asurascans.com/comics/{comic_id}-26f76d6d",
         "episode": "https://asurascans.com/comics/{comic_id}-26f76d6d/chapter/{episode}",
@@ -33,12 +33,11 @@ class Asura(Comic):
     METADATA_CSS: tuple[str, str] = ("astro-island", "props")
     COMPRESSION: bool = False
 
-    def missing_episodes(self) -> set[int]:
+    def get_avalaible_episodes(self) -> set[int]:
         data = get_elements_html(self.get_comic_html(), *self.METADATA_CSS, filter=("prefix", "r22"))
-        avalaible = {int(item["number"]) for item in clean(data, "chapters") if not item.get("is_locked")}
-        return avalaible - self.downloaded()
+        return {int(item["number"]) for item in clean(data, "chapters") if not item.get("is_locked")}
 
-    def get_url_images_episode(self, episode: int) -> list[str]:
+    def _get_url_images_episode(self, episode: int) -> list[str]:
         html = get_html_parsed(self.url_episode(episode))
         data = get_elements_html(html, *self.METADATA_CSS, filter=("prefix", "r1"))
         return [item["url"] for item in clean(data, "pages")]

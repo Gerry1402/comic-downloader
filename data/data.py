@@ -1,24 +1,45 @@
 from pathlib import Path
 
 import pandas as pd
+from pandas import Series
 
-data_path = Path(__file__).parent / "data.xlsx"
-
-
-def get_data_as_dict() -> dict:
-    df = pd.read_excel(data_path.with_suffix(".xlsx"), header=None)
-    sources = {name.split()[0]: i for i, name in enumerate(df.iloc[0].tolist()[:-1])}
-    data = {}
-
-    for _, row in df.iloc[1:].iterrows():
-        source: str = row.iloc[-2]
-        is_completed: str = row.iloc[-1]
-        index = sources[source]
-        data[row.iloc[index - 1]] = (row.iloc[index], source, is_completed)
-
-    return data
+data_path: Path = Path(__file__).parent / "data.xlsx"
 
 
-if __name__ == "__main__":
-    print(get_data_as_dict())
-    # print(read_secondary_sheet())
+def str_to_int(s: str) -> int | str:
+    try:
+        number = float(s)
+        if number.is_integer():
+            return int(number)
+        return number
+    except ValueError:
+        return s
+
+
+def data_row(row: Series) -> dict[str, str | bool]:
+    source = row["source"]
+
+    return {
+        "title": row[f"{source}_title"],
+        "id": str_to_int(row[f"{source}_id"]),
+        "source": source,
+        "completed": row["completed"],
+    }
+
+
+class Data:
+    data_df: pd.DataFrame | None = None
+
+    @classmethod
+    def get_df(cls) -> pd.DataFrame:
+        if cls.data_df is None:
+            cls.data_df = pd.read_excel(data_path, header=0)
+        return cls.data_df
+
+    @classmethod
+    def get_data(cls) -> list[dict[str, str | bool]]:
+        return cls.get_df().apply(data_row, axis=1).tolist()
+
+    @classmethod
+    def get_sources(cls) -> tuple[str]:
+        return tuple(sorted(set(cls.get_df()["source"].unique())))
