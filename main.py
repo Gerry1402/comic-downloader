@@ -11,23 +11,33 @@ load_all_modules()
 
 def get_comics() -> Generator[Downloader, None, None]:
     completed = False
-    source = ("asura", "webtoon")
-    library = Library().filter_by(completed=completed, source=source).reorder_by_source()
+    sources = ("asura", "webtoon")
+    library = Library().filter_by(completed=completed, source=sources).reorder("source")
+    # print(len(library))
+    # print(len(library))
     for comic, scraper in library:
         yield Downloader(comic, scraper)
 
 
-def get_missing_episodes() -> list[str]:
+def get_missing_episodes() -> list[dict[str, str | Comic | Downloader | int]]:
 
     def convert(d: Downloader, e: int) -> dict[str, str | Comic | Downloader | int]:
-        return {"source": d.comic.source, "comic": d.comic, "downloader": d, "episode": e}
+        return {
+            "source": d.comic.source,
+            "comic": d.comic,
+            "downloader": d,
+            "episode": e,
+        }
 
-    data: list[dict] = [convert(d, e) for d in get_comics() for e in d.get_missing_episodes()]
-    return reorder(data, "source", "comic")
+    data: list[dict] = [
+        convert(d, e) for d in get_comics() for e in d.get_missing_episodes()
+    ]
+    return reorder(data, "source", "comic")[:1]
 
 
 def main() -> None:
-    get_comics()
+    for downloader in get_comics():
+        downloader.download_all()
 
 
 if __name__ == "__main__":

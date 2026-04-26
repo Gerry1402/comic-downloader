@@ -13,5 +13,6 @@ dependencies = [
     "playwright==1.58.0",
     "pydantic==2.12.5",
     "pydantic-settings==2.13.1",
+    "rich>=14.3.3",
     "selectolax==0.4.7",
 ]

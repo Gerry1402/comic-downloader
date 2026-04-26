@@ -34,10 +34,16 @@ class Asura(Scraper):
     COMPRESSION: bool = False
 
     def get_avalaible_episodes(self) -> set[int]:
-        data = get_elements_html(self.get_comic_html(), *self.METADATA_CSS, filter=("prefix", "r22"))
-        return {int(item["number"]) for item in clean(data, "chapters") if not item.get("is_locked")}
+        data = get_elements_html(
+            self.get_comic_html(), *self.METADATA_CSS, filter=("prefix", "r22")
+        )
+        return {
+            int(item["number"])
+            for item in clean(data, "chapters")
+            if not item.get("is_locked")
+        }
 
-    def _get_url_images_episode(self, episode: int) -> list[str]:
+    def get_url_images_episode(self, episode: int) -> list[str]:
         html = get_html_parsed(self.url_episode(episode))
         data = get_elements_html(html, *self.METADATA_CSS, filter=("prefix", "r1"))
         return [item["url"] for item in clean(data, "pages")]

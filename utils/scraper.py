@@ -15,7 +15,7 @@ def get_html_parsed(url: str, cookies: str = "") -> HTMLParser:
     return HTMLParser(response.text)
 
 
-def _content_image(url: str, referer: str, cookies: str = "") -> bytes:
+def content_image(url: str, referer: str, cookies: str = "") -> bytes:
     response = requests.get(
         url,
         cookies=cookies if cookies else None,
@@ -54,7 +54,7 @@ def get_extension(url: str) -> str:
 
 
 def save_image(url: str, path: Path, cookies: str = "", referer: str = "") -> None:
-    content = _content_image(url, referer, cookies)
+    content = content_image(url, referer, cookies)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.with_suffix(get_extension(url)).open("wb") as f:
         f.write(content)
@@ -84,6 +84,10 @@ def get_elements_html(
         results.append(result)
         if first:
             return results[0]
-        if filter[0] is not None and filter[1] is not None and node.attributes.get(filter[0], "") == filter[1]:
+        if (
+            filter[0] is not None
+            and filter[1] is not None
+            and node.attributes.get(filter[0], "") == filter[1]
+        ):
             return results[-1]
     return results

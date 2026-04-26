@@ -1,6 +1,6 @@
 from io import BytesIO
 
-from PIL import Image as PILImage
+from PIL import Image as PImage
 
 
 class Image:
@@ -13,11 +13,11 @@ class Image:
     def transform_image(cls, input: bytes) -> bytes | None:
         input_buffer = BytesIO(input)
         output_buffer = BytesIO()
-        with PILImage.open(input_buffer) as img:
+        with PImage.open(input_buffer) as img:
             img.convert("RGB").save(output_buffer, **vars(cls))
             return output_buffer.getvalue()
 
     @staticmethod
-    def equal_widths(image1: bytes, image2: bytes) -> bool:
-        with PILImage.open(BytesIO(image1)) as img1, PILImage.open(BytesIO(image2)) as img2:
-            return img1.width == img2.width
+    def equal_widths(img1: bytes, img2: bytes) -> bool:
+        with PImage.open(BytesIO(img1)) as i1, PImage.open(BytesIO(img2)) as i2:
+            return i1.width == i2.width

@@ -8,15 +8,15 @@ from core.comic import Comic
 
 class Logger:
     dir_path: Path = Path(__file__).parent.parent / "logs"
-    log_results: tuple[str, str] = ("done", "error")
+    log_results: tuple[str, str] = ("error", "done")
     ignore_successful_logs: bool = True
 
     def __init__(self, name: str, comic: Comic) -> None:
         self.name = name
         self.comic = comic
 
-    def get_file_path(self, log_type: str, is_error: bool) -> Path:
-        name = ".".join([self.name, log_type, self.log_results[int(is_error)]])
+    def get_file_path(self, log_type: str, successfull: bool) -> Path:
+        name = ".".join([self.name, log_type, self.log_results[int(successfull)]])
         file_path = self.dir_path / f"{name}.jsonl"
         self.dir_path.mkdir(exist_ok=True)
         # file_path.touch(exist_ok=True)

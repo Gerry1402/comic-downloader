@@ -15,4 +15,6 @@ class URLBuilder:
 
     def url_episode(self, episode: int) -> str:
         adjustment = self.adjustment_episode(episode)
-        return self.PATTERNS["episode"].format(comic_id=self.comic.id, episode=episode + adjustment)
+        return self.PATTERNS["episode"].format(
+            comic_id=self.comic.id, episode=episode + adjustment
+        )

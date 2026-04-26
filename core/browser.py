@@ -37,7 +37,9 @@ class BrowserManager:
             if current_height == previous_height:
                 break
             previous_height = current_height
-            page.evaluate("window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })")
+            page.evaluate(
+                "window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })"
+            )
         html = HTMLParser(page.content())
         page.close()
         return html
