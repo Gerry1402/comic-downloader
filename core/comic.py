@@ -21,3 +21,6 @@ class Comic:
 
     def __str__(self) -> str:
         return self.__repr__()
+
+    def to_dict(self) -> dict[str, str | bool]:
+        return self.__dict__

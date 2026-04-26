@@ -19,7 +19,7 @@ class Scraper(URLBuilder):
     def __init__(self, comic: Comic) -> None:
         super().__init__(comic)
         self._comic_html: HTMLParser | None = None
-        self.avalaible_episodes: set[int] | None = None
+        self.available_episodes: set[int] | None = None
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -33,16 +33,12 @@ class Scraper(URLBuilder):
             self._comic_html = get_html_parsed(self.url_comic())
         return self._comic_html
 
-    def get_avalaible_episodes(self) -> set[int]:
-        if self.avalaible_episodes is None:
-            last_episode = int(
-                get_elements_html(
-                    self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True
-                )
-            )
+    def get_available_episodes(self) -> set[int]:
+        if self.available_episodes is None:
+            last_episode = int(get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True))
             final_episode = last_episode - len(self.skip.get(self.comic.title, set()))
-            self.avalaible_episodes = set(range(1, final_episode + 1))
-        return self.avalaible_episodes
+            self.available_episodes = set(range(1, final_episode + 1))
+        return self.available_episodes
 
     def _get_url_images_episode(self, episode: int) -> list[str]:
         html = get_html_parsed(self.url_episode(episode))
@@ -53,9 +49,7 @@ class Scraper(URLBuilder):
         return [url.split("?", 1)[0] for url in urls]
 
     def _get_image_content(self, url: str) -> tuple[bytes, str]:
-        content = content_image(
-            url.split("?", maxsplit=1)[0], self.REFERER, self.get_cookies()
-        )
+        content = content_image(url.split("?", maxsplit=1)[0], self.REFERER, self.get_cookies())
         if self.COMPRESSION:
             content = Image.transform_image(content)
         return content, ".webp" if self.COMPRESSION else get_extension(url)

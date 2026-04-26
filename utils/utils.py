@@ -32,17 +32,15 @@ def reorder_by_frequency(
     next_time = dict.fromkeys(counts, 0.0)
     step = {key: n_data / count for key, count in counts.items()}
 
-    main_key = {}
+    main_keys = {}
     for item in data:
-        main_key.setdefault(item[key], []).append(item)
+        main_keys.setdefault(item[key], []).append(item)
 
     new_data = []
     for _ in range(n_data):
-        avalaible_key_values = {key for key, values in main_key.items() if values}
-        key_value = min(
-            avalaible_key_values, key=lambda c: (next_time[c], -len(main_key[c]))
-        )
-        new_data.append(main_key[key_value].pop(0))
+        available_key_values = {key for key, values in main_keys.items() if values}
+        key_value = min(available_key_values, key=lambda c: (next_time[c], -len(main_keys[c])))
+        new_data.append(main_keys[key_value].pop(0))
         next_time[key_value] += step[key_value]
     return new_data
 
@@ -73,10 +71,7 @@ def threadpool(
 
     parameters = zip(*args)
     with ThreadPoolExecutor(max_workers=workers) as executor:
-        futures = {
-            executor.submit(function, *params): i
-            for i, params in enumerate(parameters, start=1)
-        }
+        futures = {executor.submit(function, *params): i for i, params in enumerate(parameters, start=1)}
         for future in as_completed(futures):
             try:
                 result = future.result()
