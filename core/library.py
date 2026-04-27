@@ -1,13 +1,17 @@
 from collections.abc import Collection, Iterator
 from random import shuffle
+from typing import Any
 
 from rich.console import Console
 from rich.table import Table
 
 from core.comic import Comic
+from core.logger import Logger
 from core.scraper import Scraper
 from data.data import Data
 from utils.utils import reorder
+
+logger = Logger.logger()
 
 
 class Library:
@@ -24,21 +28,25 @@ class Library:
         self._data = data if data is not None else self.data.copy()
 
     def shuffle(self) -> "Library":
+        logger.debug("Shuffling the library")
         data = self._data.copy()
         shuffle(data)
         return Library(data)
 
     def sort_by(self, *keys: str) -> "Library":
+        logger.debug(f"Sorting the library by keys: {keys}")
         sorted_data = sorted(self._data, key=lambda c: tuple(c[key] for key in keys))
         return Library(sorted_data)
 
     def filter_by(self, **kwargs: str | bool | Collection) -> "Library":
+        logger.debug(f"Filtering the library with criteria: {kwargs}")
         def check(c: dict) -> bool:
             return all((c[k] in v if isinstance(v, Collection) else c[k] == v) for k, v in kwargs.items())
 
         return Library([c for c in self._data if check(c)])
 
     def reorder(self, *keys: str) -> "Library":
+        logger.debug(f"Reordering the library by keys: {keys}")
         return Library(reorder(self._data, *keys))
 
     def show(self) -> None:
@@ -58,7 +66,7 @@ class Library:
         Console().print(table)
 
     @classmethod
-    def get(cls, title: str, default: Scraper | None = None) -> Scraper:
+    def get(cls, title: str, default: Any | None = None) -> Scraper:
         for comic in cls.data:
             if comic["title"] == title:
                 scraper = Scraper.sources[comic["source"]]

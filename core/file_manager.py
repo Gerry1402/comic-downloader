@@ -3,6 +3,9 @@ from zipfile import ZIP_STORED, ZipFile
 
 from config import get_settings
 from core.comic import Comic
+from core.logger import Logger
+
+logger = Logger.logger()
 
 
 class FileManager:
@@ -22,12 +25,15 @@ class FileManager:
         return path / f"{str(episode).zfill(self.z_fill)}{self.extension}"
 
     def get_downloaded_episodes(self) -> set[int]:
+        logger.debug("Getting downloaded episodes", **self.comic.logger())
         return {int(file.stem) for file in self.path().rglob(f"*{self.extension}")}
 
     def delete(self, episode: int) -> None:
+        logger.debug(f"Deleting file for episode {episode}", **self.comic.logger(episode=episode))
         self.path(episode).with_suffix(self.extension).unlink(missing_ok=True)
 
     def open(self, episode: int) -> None:
+        logger.debug(f"Opening file for episode {episode}", **self.comic.logger(episode=episode))
         self._cbz = ZipFile(self.path(episode).with_suffix(self.extension), "w", compression=ZIP_STORED)
 
     def write(self, i: int, content: bytes, ext: str) -> None:

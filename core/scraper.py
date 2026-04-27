@@ -3,6 +3,7 @@ from selectolax.parser import HTMLParser
 from config import get_settings
 from core.comic import Comic
 from core.image import Image
+from core.logger import Logger
 from core.url_builder import URLBuilder
 from utils.scraper import (
     content_image,
@@ -10,6 +11,8 @@ from utils.scraper import (
     get_extension,
     get_html_parsed,
 )
+
+logger = Logger.logger()
 
 
 class Scraper(URLBuilder):
@@ -34,9 +37,22 @@ class Scraper(URLBuilder):
         return self._comic_html
 
     def get_available_episodes(self) -> set[int]:
+        extra = self.comic.logger(url=self.url_comic())
         if self.available_episodes is None:
-            last_episode = int(get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True))
-            final_episode = last_episode - len(self.skip.get(self.comic.title, set()))
+            logger.debug("Getting available episodes", **extra)
+            try:
+                logger.debug("Parsing the last episode", **extra)
+                last_episode = get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True)
+            except Exception:
+                logger.error("Failed to parse the last episode", **extra)
+                raise RuntimeError("Failed to parse the last episode")
+            try:
+                logger.debug("Converting the last episode to int", **extra)
+                last_episode = int(last_episode)
+            except ValueError:
+                logger.error("Failed to convert the last episode to int", **extra)
+                raise RuntimeError("Failed to convert the last episode to int")
+            final_episode = last_episode - self.adjustment_episode(last_episode)
             self.available_episodes = set(range(1, final_episode + 1))
         return self.available_episodes
 
@@ -45,7 +61,12 @@ class Scraper(URLBuilder):
         return get_elements_html(html, *self.IMAGES_CSS)
 
     def get_url_images_episode(self, episode: int) -> list[str]:
+        extra = self.comic.logger(url=self.url_episode(episode), episode=episode)
+        logger.debug(f"Getting image URLs for episode {episode}", **extra)
         urls = self._get_url_images_episode(episode)
+        if not urls:
+            logger.error(f"No image URLs found for episode {episode}", **extra)
+            raise RuntimeError(f"No image URLs found for episode {episode}")
         return [url.split("?", 1)[0] for url in urls]
 
     def _get_image_content(self, url: str) -> tuple[bytes, str]:
