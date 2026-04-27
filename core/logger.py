@@ -22,10 +22,10 @@ class Logger:
         # file_path.touch(exist_ok=True)
         return file_path
 
-    def add(self, log_type: str, is_fail: bool, **kwargs: Any) -> None:  # noqa: ANN401
-        if self.ignore_successful_logs and not is_fail:
+    def add(self, log_type: str, successfull: bool, **kwargs: Any) -> None:  # noqa: ANN401
+        if self.ignore_successful_logs and successfull:
             return
-        file_path = self.get_file_path(log_type, is_fail)
+        file_path = self.get_file_path(log_type, successfull)
         data = {"time": datetime.now().isoformat(), "comic": self.comic.title, **kwargs}
         with file_path.open("a", encoding="utf-8") as f:
             f.write(f"{json.dumps(data)}\n")

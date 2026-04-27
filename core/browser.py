@@ -37,9 +37,7 @@ class BrowserManager:
             if current_height == previous_height:
                 break
             previous_height = current_height
-            page.evaluate(
-                "window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })"
-            )
+            page.evaluate("window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })")
         html = HTMLParser(page.content())
         page.close()
         return html
@@ -58,5 +56,5 @@ class BrowserManager:
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc, tb) -> None:  # noqa: ANN001
+    def __exit__(self, exc_type, exc, tb) -> None:
         self.close()

@@ -1,0 +1,10 @@
+line-length = 120
+indent-width = 4
+
+[lint]
+fixable = ["ALL"]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[format]
+quote-style = "double"
+line-ending = "auto"

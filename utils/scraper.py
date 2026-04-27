@@ -84,10 +84,6 @@ def get_elements_html(
         results.append(result)
         if first:
             return results[0]
-        if (
-            filter[0] is not None
-            and filter[1] is not None
-            and node.attributes.get(filter[0], "") == filter[1]
-        ):
+        if filter[0] is not None and filter[1] is not None and node.attributes.get(filter[0], "") == filter[1]:
             return results[-1]
     return results

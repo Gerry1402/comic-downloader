@@ -28,9 +28,7 @@ class FileManager:
         self.path(episode).with_suffix(self.extension).unlink(missing_ok=True)
 
     def open(self, episode: int) -> None:
-        self._cbz = ZipFile(
-            self.path(episode).with_suffix(self.extension), "w", compression=ZIP_STORED
-        )
+        self._cbz = ZipFile(self.path(episode).with_suffix(self.extension), "w", compression=ZIP_STORED)
 
     def write(self, i: int, content: bytes, ext: str) -> None:
         with self._cbz.open(f"{i:03}{ext}", "w") as f:

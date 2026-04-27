@@ -1,11 +1,15 @@
 from typing import Generator
 
+from rich import pretty
+
 from core.downloader import Downloader
 from core.library import Library
 from core.pipeline import Pipeline
 from sources import load_all_modules
 
+pretty.install()
 load_all_modules()
+
 
 def get_library() -> Library:
     completed = False

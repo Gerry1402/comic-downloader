@@ -1,7 +1,14 @@
 from __future__ import annotations
 
 from rich.console import Console
-from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeElapsedColumn, TimeRemainingColumn
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
 from rich.table import Column
 
 from core.downloader import Downloader
@@ -49,6 +56,9 @@ class Pipeline:
         with self._build_progress(False, expand=True, transient=False) as progress:
             task = progress.add_task("", total=len(self.episodes))
             for ep in self.episodes:
-                progress.update(task, description=f"{ep['source']} · {ep['title']} · Downloading {ep['episode']}...")
+                progress.update(
+                    task,
+                    description=f"{ep['source']} · {ep['title']} · Downloading {ep['episode']}...",
+                )
                 Downloader(Library.get(ep["title"])).download_episode(ep["episode"])
                 progress.advance(task)

@@ -15,7 +15,7 @@ class Comic:
         object.__setattr__(self, "name", sanitizing_title(self.title))
 
     def __repr__(self) -> str:
-        content = self.__dict__.copy()
+        content = self.to_dict()
         content.pop("title")
         return f"{self.title} ({', '.join(f'{k}={v}' for k, v in content.items())})"
 
