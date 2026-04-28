@@ -113,7 +113,7 @@ Every source class registers itself automatically via `Scraper.__init_subclass__
 
 - Python 3.12 or newer
 - [uv](https://github.com/astral-sh/uv) package manager
-- Chromium browser via Playwright (only needed for JS-heavy sources like Asura)
+- Chromium browser via Playwright (only needed for JS-heavy sources)
 
 ---
 
@@ -226,7 +226,7 @@ The title is sanitised so it is safe on all file systems: characters like `:`, `
 | Class | Site | JS needed | Converts to WEBP |
 | --- | --- | --- | --- |
 | `Webtoon` | webtoons.com | No | Yes |
-| `Asura` | asurascans.com | No (curl-cffi) | No |
+| `Asura` | asurascans.com | No | No |
 | `Rizz` | rizzfables.com | No | No |
 
 ---
