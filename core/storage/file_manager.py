@@ -2,8 +2,8 @@ from pathlib import Path
 from zipfile import ZIP_STORED, ZipFile
 
 from config import get_settings
-from core.comic import Comic
-from core.logger import Logger
+from core.logging.logger import Logger
+from core.models.comic import Comic
 
 logger = Logger.logger()
 

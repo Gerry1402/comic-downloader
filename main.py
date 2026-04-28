@@ -2,10 +2,7 @@ from typing import Generator
 
 from rich import pretty
 
-from core.downloader import Downloader
-from core.library import Library
-from core.pipeline import Pipeline
-from core.logger import Logger
+from core import Library, Logger, Pipeline
 from sources import load_all_modules
 
 
@@ -15,7 +12,7 @@ def get_library() -> Library:
     return Library().shuffle().filter_by(completed=completed, source=sources).reorder("source")
 
 
-def get_comics() -> Generator[Downloader, None, None]:
+def get_comics() -> Generator[None, None, None]:
     for scraper in get_library():
         yield scraper
 

@@ -3,13 +3,14 @@ from typing import Any
 from curl_cffi import requests
 from selectolax.parser import HTMLParser, Node
 
-from core.logger import Logger
+from core import Logger
 
 logger = Logger.logger()
 
 
 def clean_url(url: str) -> str:
     return url.split("?", 1)[0]
+
 
 def get_html_parsed(url: str, cookies: str = "") -> HTMLParser:
     logger.debug("Fetching HTML content", extra={"url": url})

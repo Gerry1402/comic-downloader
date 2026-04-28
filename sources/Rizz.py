@@ -1,4 +1,4 @@
-from core.scraper import Scraper
+from core import Scraper
 
 
 class Rizz(Scraper):

@@ -5,9 +5,9 @@ from typing import Any
 from rich.console import Console
 from rich.table import Table
 
-from core.comic import Comic
-from core.logger import Logger
-from core.scraper import Scraper
+from core.logging.logger import Logger
+from core.models.comic import Comic
+from core.scrapers.base import Scraper
 from data.data import Data
 from utils.utils import reorder
 

@@ -1,10 +1,10 @@
 from selectolax.parser import HTMLParser
 
 from config import get_settings
-from core.comic import Comic
-from core.image import Image
-from core.logger import Logger
-from core.url_builder import URLBuilder
+from core.logging.logger import Logger
+from core.models.comic import Comic
+from core.models.image import Image
+from core.storage.url_builder import URLBuilder
 from utils.scraper import (
     clean_url,
     content_image,

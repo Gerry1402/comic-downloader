@@ -1,10 +1,10 @@
 from time import sleep
 
-from core.comic import Comic
-from core.file_manager import FileManager
-from core.image import Image
-from core.logger import Logger
-from core.scraper import Scraper
+from core.logging.logger import Logger
+from core.models.comic import Comic
+from core.models.image import Image
+from core.scrapers.base import Scraper
+from core.storage.file_manager import FileManager
 from utils.utils import threadpool
 
 logger = Logger.logger()

@@ -1,7 +1,7 @@
 import json
 from typing import Generator
 
-from core.scraper import Scraper
+from core import Scraper
 from utils.scraper import get_elements_html, get_html_parsed
 
 

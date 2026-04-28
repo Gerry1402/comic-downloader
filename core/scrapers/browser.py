@@ -3,7 +3,7 @@ from typing import Self
 from playwright.sync_api import Route, sync_playwright
 from selectolax.parser import HTMLParser
 
-from core.logger import Logger
+from core.logging.logger import Logger
 
 logger = Logger.logger()
 

@@ -11,9 +11,9 @@ from rich.progress import (
 )
 from rich.table import Column
 
-from core.downloader import Downloader
-from core.library import Library
-from core.logger import Logger
+from core.logging.logger import Logger
+from core.services.downloader import Downloader
+from core.services.library import Library
 from utils.utils import reorder
 
 logger = Logger.logger()

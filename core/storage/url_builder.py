@@ -1,4 +1,4 @@
-from core.comic import Comic
+from core.models.comic import Comic
 
 
 class URLBuilder:

@@ -7,11 +7,7 @@ from typing import ClassVar, Literal
 
 from rich.logging import RichHandler
 
-key_colors = {
-    "source": "green",
-    "title": "cyan",
-    "episode": "magenta"
-}
+key_colors = {"source": "green", "title": "cyan", "episode": "magenta"}
 
 separator = " · "
 
@@ -73,7 +69,7 @@ class FileFormatter(logging.Formatter):
 
 @dataclass(frozen=True)
 class File:
-    directory: ClassVar[Path] = Path(__file__).parent.parent / "logs"
+    directory: ClassVar[Path] = Path(__file__).parent.parent.parent / "logs"
     timestamp: ClassVar[str] = datetime.now().strftime("%Y-%m-%d")
     filename: ClassVar[str] = "{name}_{timestamp}.log"
 
