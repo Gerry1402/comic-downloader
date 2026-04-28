@@ -48,7 +48,7 @@ class Downloader:
                     if Image.equal_widths(*images):
                         self.file_manager.write(1, images[0], ext)
                     else:
-                        logger.warning(
+                        logger.info(
                             "The first two images have different widths",
                             **self.comic.logger(url=self.scraper.url_episode(episode), episode=episode),
                         )
@@ -58,24 +58,24 @@ class Downloader:
         self.file_manager.close()
         return True
 
-    def download_episode(self, episode: int) -> bool:
+    def download_episode(self, episode: int) -> None:
         extra = self.comic.logger(url=self.scraper.url_episode(episode), episode=episode)
         logger.info(f"Downloading episode {episode}", **extra)
         urls = self.scraper.get_url_images_episode(episode)
+        if len(urls) < 3:
+            logger.warning(f"Few images found for episode {episode}", **(extra | {"images": len(urls)}))
         for i in range(1, self.retries + 1):
             logger.debug(f"Attempt {i} to download episode {episode}", **extra)
-            if is_downloaded := self.attempt_download_episode(episode, urls):
+            if self.attempt_download_episode(episode, urls):
                 logger.info(f"Successfully downloaded episode {episode} on attempt {i}", **extra)
-                break
+                return
             logger.warning(f"Failed to download episode {episode} on attempt {i}", **extra)
             self.file_manager.delete(episode)
-            logger.debug(f"Waiting {self.time_between_retries} seconds", **extra)
-            sleep(self.time_between_retries)
-        if is_downloaded:
-            logger.info(f"Finished downloading episode {episode}", **extra)
-        else:
-            logger.error(f"Failed to download episode {episode}", **extra)
-        return is_downloaded
+            if i < self.retries:
+                logger.debug(f"Waiting {self.time_between_retries} seconds", **extra)
+                sleep(self.time_between_retries)
+        logger.exception(f"Failed to download episode {episode}", **extra)
+        raise RuntimeError(f"Failed to download episode {episode}")
 
     def download_all(self) -> None:
         logger.info("Starting download of missing episodes", **self.comic.logger(url=self.scraper.url_comic()))

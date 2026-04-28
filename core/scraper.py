@@ -6,6 +6,7 @@ from core.image import Image
 from core.logger import Logger
 from core.url_builder import URLBuilder
 from utils.scraper import (
+    clean_url,
     content_image,
     get_elements_html,
     get_extension,
@@ -32,42 +33,46 @@ class Scraper(URLBuilder):
         return self.cookies.get(self.__class__.__name__.lower(), "")
 
     def get_comic_html(self) -> HTMLParser:
+        extra = self.comic.logger(url=self.url_comic(), css=self.LAST_EPISODE_CSS)
         if self._comic_html is None:
-            self._comic_html = get_html_parsed(self.url_comic())
-        return self._comic_html
-
-    def get_available_episodes(self) -> set[int]:
-        extra = self.comic.logger(url=self.url_comic())
-        if self.available_episodes is None:
-            logger.debug("Getting available episodes", **extra)
+            logger.debug("Fetching main url comic HTML content", **extra)
             try:
-                logger.debug("Parsing the last episode", **extra)
-                last_episode = get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True)
+                self._comic_html = get_html_parsed(self.url_comic())
+                return self._comic_html
             except Exception:
-                logger.error("Failed to parse the last episode", **extra)
-                raise RuntimeError("Failed to parse the last episode")
-            try:
-                logger.debug("Converting the last episode to int", **extra)
-                last_episode = int(last_episode)
-            except ValueError:
-                logger.error("Failed to convert the last episode to int", **extra)
-                raise RuntimeError("Failed to convert the last episode to int")
+                logger.exception("Failed to fetch main url comic HTML content", **extra)
+                raise
+
+    def _get_available_episodes(self) -> set[int]:
+        if self.available_episodes is None:
+            last_episode = get_elements_html(self.get_comic_html(), *self.LAST_EPISODE_CSS, first=True)
+            last_episode = int(last_episode)
             final_episode = last_episode - self.adjustment_episode(last_episode)
             self.available_episodes = set(range(1, final_episode + 1))
         return self.available_episodes
+
+    def get_available_episodes(self) -> set[int]:
+        extra = self.comic.logger(url=self.url_comic(), css=self.LAST_EPISODE_CSS)
+        logger.debug("Getting available episodes", **extra)
+        try:
+            return self._get_available_episodes()
+        except Exception:
+            logger.exception("Failed to get available episodes", **extra)
+            raise
 
     def _get_url_images_episode(self, episode: int) -> list[str]:
         html = get_html_parsed(self.url_episode(episode))
         return get_elements_html(html, *self.IMAGES_CSS)
 
     def get_url_images_episode(self, episode: int) -> list[str]:
-        extra = self.comic.logger(url=self.url_episode(episode), episode=episode)
-        logger.debug(f"Getting image URLs for episode {episode}", **extra)
-        urls = self._get_url_images_episode(episode)
-        if not urls:
-            logger.error(f"No image URLs found for episode {episode}", **extra)
-            raise RuntimeError(f"No image URLs found for episode {episode}")
-        return [url.split("?", 1)[0] for url in urls]
+        extra = self.comic.logger(url=self.url_episode(episode), episode=episode, css=self.IMAGES_CSS)
+        logger.debug("Getting image URLs", **extra)
+        try:
+            images = list(map(clean_url, self._get_url_images_episode(episode)))
+            return images
+        except Exception:
+            logger.exception("Failed to get image URLs", **extra)
+            raise
 
     def _get_image_content(self, url: str) -> tuple[bytes, str]:
         content = content_image(url.split("?", maxsplit=1)[0], self.REFERER, self.get_cookies())

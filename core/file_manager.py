@@ -25,8 +25,9 @@ class FileManager:
         return path / f"{str(episode).zfill(self.z_fill)}{self.extension}"
 
     def get_downloaded_episodes(self) -> set[int]:
-        logger.debug("Getting downloaded episodes", **self.comic.logger())
-        return {int(file.stem) for file in self.path().rglob(f"*{self.extension}")}
+        episodes = {int(file.stem) for file in self.path().glob(f"*{self.extension}")}
+        logger.debug("Getting downloaded episodes", **self.comic.logger(episode=len(episodes)))
+        return episodes
 
     def delete(self, episode: int) -> None:
         logger.debug(f"Deleting file for episode {episode}", **self.comic.logger(episode=episode))
@@ -41,6 +42,7 @@ class FileManager:
             f.write(content)
 
     def close(self) -> None:
+        logger.debug("Closing file", **self.comic.logger())
         if self._cbz:
             self._cbz.close()
             self._cbz = None

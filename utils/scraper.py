@@ -1,16 +1,23 @@
-from pathlib import Path
 from typing import Any
 
 from curl_cffi import requests
 from selectolax.parser import HTMLParser, Node
 
+from core.logger import Logger
+
+logger = Logger.logger()
+
+
+def clean_url(url: str) -> str:
+    return url.split("?", 1)[0]
 
 def get_html_parsed(url: str, cookies: str = "") -> HTMLParser:
-    args: dict[str, Any] = {"url": url}
+    logger.debug("Fetching HTML content", extra={"url": url})
+    kwargs: dict[str, Any] = {"url": url}
     if cookies:
-        args["cookies"] = cookies
-    response = requests.get(**args)
-    if response.status_code != 200:  # noqa: PLR2004
+        kwargs["cookies"] = cookies
+    response = requests.get(**kwargs)
+    if response.status_code != 200:
         raise Exception(f"Failed to fetch data: {response.status_code}")
     return HTMLParser(response.text)
 
@@ -50,14 +57,7 @@ def get_extension(url: str) -> str:
         "apng",
     }
     extension = url.split("?", maxsplit=1)[0].rsplit(".", maxsplit=1)[-1]
-    return "." + extension if extension in extensions else "png"
-
-
-def save_image(url: str, path: Path, cookies: str = "", referer: str = "") -> None:
-    content = content_image(url, referer, cookies)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.with_suffix(get_extension(url)).open("wb") as f:
-        f.write(content)
+    return "." + (extension if extension in extensions else "png")
 
 
 def get_elements_html(
@@ -73,6 +73,9 @@ def get_elements_html(
     if not nodes:
         # path = Path(__file__).parent.parent / "debugs" / "debug.html"
         # add_file(path, html.html)
+        html.strip_tags(["head", "script", "style"])
+        with Logger.files.directory.joinpath("debug.html").open("w", encoding="utf-8") as f:
+            f.write(html.html)
         raise Exception(f"No elements found for selector: {selector}")
     for node in nodes:
         if isinstance(attributes, str):

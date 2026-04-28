@@ -40,6 +40,7 @@ class Library:
 
     def filter_by(self, **kwargs: str | bool | Collection) -> "Library":
         logger.debug(f"Filtering the library with criteria: {kwargs}")
+
         def check(c: dict) -> bool:
             return all((c[k] in v if isinstance(v, Collection) else c[k] == v) for k, v in kwargs.items())
 

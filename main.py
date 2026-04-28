@@ -9,7 +9,6 @@ from core.logger import Logger
 from sources import load_all_modules
 
 
-
 def get_library() -> Library:
     completed = False
     sources = ("asura", "webtoon")
@@ -29,6 +28,7 @@ def main() -> None:
     logger.info("Starting the comic downloader...")
     Pipeline(get_library()).run()
     logger.info("Finished downloading all comics.")
+
 
 if __name__ == "__main__":
     main()

@@ -12,8 +12,8 @@ from rich.progress import (
 from rich.table import Column
 
 from core.downloader import Downloader
-from core.logger import Logger
 from core.library import Library
+from core.logger import Logger
 from utils.utils import reorder
 
 logger = Logger.logger()
@@ -44,7 +44,7 @@ class Pipeline:
         return Progress(*data[0 if spinner else 1 :], console=self.console, **kwargs)
 
     def collect(self) -> None:
-        
+
         with self._build_progress(True, expand=True, transient=True) as spinner:
             task = spinner.add_task("", total=len(self.library))
             for scraper in self.library:
@@ -62,7 +62,7 @@ class Pipeline:
             for ep in self.episodes:
                 progress.update(
                     task,
-                    description=f"{ep['source']} · {ep['title']} · Downloading {ep['episode']}...",
+                    description=f"{ep['source'].capitalize()} · {ep['title']} · Downloading {ep['episode']}...",
                 )
                 Downloader(Library.get(ep["title"])).download_episode(ep["episode"])
                 progress.advance(task)

@@ -29,15 +29,16 @@ class Asura(Scraper):
         "episode": "https://asurascans.com/comics/{comic_id}-26f76d6d/chapter/{episode}",
     }
     IMAGES_CSS: tuple[str, str] = (".select-none img", "src")
+    LAST_EPISODE_CSS: tuple[str, str] = ("metadata", "metadata")
     REFERER: str = "https://asurascans.com/"
     METADATA_CSS: tuple[str, str] = ("astro-island", "props")
     COMPRESSION: bool = False
 
-    def get_available_episodes(self) -> set[int]:
+    def _get_available_episodes(self) -> set[int]:
         data = get_elements_html(self.get_comic_html(), *self.METADATA_CSS, filter=("prefix", "r22"))
         return {int(item["number"]) for item in clean(data, "chapters") if not item.get("is_locked")}
 
-    def get_url_images_episode(self, episode: int) -> list[str]:
+    def _get_url_images_episode(self, episode: int) -> list[str]:
         html = get_html_parsed(self.url_episode(episode))
         data = get_elements_html(html, *self.METADATA_CSS, filter=("prefix", "r1"))
         return [item["url"] for item in clean(data, "pages")]
